@@ -49,19 +49,42 @@ def create_product(product: Product):
         conn.close()
         raise HTTPException(status_code=400, detail="SKU already exists")
 
-    # Insert product into the database
+    # Correct INSERT syntax for psycopg2
     cursor.execute(
         """
         INSERT INTO products (name, sku, price, stock, category)
-        VALUES ($1, $2, $3, $4, $5)
+        VALUES (%s, %s, %s, %s, %s)
         RETURNING id
         """,
         (product.name, product.sku, product.price, product.stock, product.category),
     )
+
+    product_id = cursor.fetchone()["id"]
     conn.commit()
     conn.close()
 
-    return {"message": "Product created successfully"}
+    return {
+        "id": product_id,
+        "name": product.name,
+        "sku": product.sku,
+        "price": product.price,
+        "stock": product.stock,
+        "category": product.category,
+    },
+
+# Add endpoint to get all products
+@app.get("/api/products")
+def get_products():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Fetch all products from the database
+    cursor.execute("SELECT id, name, sku, price, stock, category FROM products")
+    products = cursor.fetchall()
+    conn.close()
+
+    return {"products": products}
+
 
 
 # create
