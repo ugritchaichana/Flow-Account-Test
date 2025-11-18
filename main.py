@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field, validator
 from fastapi import FastAPI, HTTPException
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from datetime import datetime
+
 
 app = FastAPI()
 
@@ -70,6 +72,7 @@ def create_product(product: Product):
         "price": product.price,
         "stock": product.stock,
         "category": product.category,
+        "timestamp": datetime.now().isoformat()
     },
 
 # Add endpoint to get all products
